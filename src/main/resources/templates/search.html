@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>查询</title>
+
+    <style>
+        .flex-warp {
+            display: flex;
+        }
+    </style>
+
+</head>
+<body>
+<form id="searchForm" action="/download" method="POST" enctype="application/x-www-form-urlencoded">
+    <div class="flex-warp">
+        <div>
+            <label>
+                主键ID
+                <input id="idKey" type="text" name="idKey" />
+            </label>
+        </div>
+
+        <div>
+            <label>URL</label>
+            <input id="url" type="text" name="url" />
+        </div>
+
+        <div>
+            <label>备注</label>
+            <input id="remark" type="text" name="remark" />
+        </div>
+
+        <div>
+            <label>字符串</label>
+            <input id="str" type="text" name="str" />
+        </div>
+
+        <div>
+            <label>时间</label>
+            <input type="datetime-local" step="01" id="insertTimeStart" name="insertTimeStart">
+            ~
+            <input type="datetime-local" step="01" id="insertTimeEnd" name="insertTimeEnd">
+        </div>
+    </div>
+    <input type="submit" value="下载"></input>
+</form>
+
+<div>
+    <button onclick="search()">查询</button>
+
+
+</div>
+
+
+<div>
+
+
+    <table id="table" border="1"cellspacing="0" style="display: none" th:cellpadding="0px">
+        <tr>
+            <th>主键ID</th>
+            <th>URL</th>
+            <th>备注</th>
+            <th>字符串</th>
+            <th>时间</th>
+        </tr>
+    </table>
+</div>
+
+<script src="jquery-1.11.0.min.js"></script>
+<script type="text/javascript">
+    function download() {
+        var param = {}
+        param.idKey = $("#idKey").val();
+        param.url = $("#url").val();
+        param.remark = $("#remark").val();
+        param.str = $("#str").val();
+        param.insertTimeStart = $("#insertTimeStart").val();
+        param.insertTimeEnd = $("#insertTimeEnd").val();
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            url: "/download",
+            data:  JSON.stringify(param),
+            beforeSend: function (request) {
+                request.setRequestHeader("Content-type", "application/json");
+            }, success: function (data) {
+                var blob = data;
+                var reader = new FileReader();
+                reader.readAsDataURL(blob);  // 转换为base64，可以直接放入a表情href
+                reader.onload = function (e) {
+                    // 转换完成，创建一个a标签用于下载
+                    var a = document.createElement('a');
+                    a.download = 'data.xlsx';
+                    a.href = e.target.result;
+                    $("body").append(a);  // 修复firefox中无法触发click
+                    a.click();
+                    $(a).remove();
+                }
+            }
+        });
+    }
+
+    function search() {
+
+        var param = {}
+        param.idKey = $("#idKey").val();
+        param.url = $("#url").val();
+        param.remark = $("#remark").val();
+        param.str = $("#str").val();
+        param.insertTimeStart = $("#insertTimeStart").val();
+        param.insertTimeEnd = $("#insertTimeEnd").val();
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            url: "/search",
+            data:  JSON.stringify(param),
+            beforeSend: function (request) {
+                request.setRequestHeader("Content-type", "application/json");
+            }, success: function (result) {
+                var elStr = '';
+                $(".result").remove();
+                $.each(result, function (index, value) {
+                    elStr += '<tr class="result"><td>' + value.idKey + '</td>';
+                    elStr += '<td>' + value.url + '</td>';
+                    elStr += '<td>' + value.remark + '</td>';
+                    elStr += '<td>' + value.str + '</td>';
+                    elStr += '<td>' + value.insertTime + '</td></tr>';
+                })
+                $("#table").append($(elStr)).show();
+            }
+        });
+
+    }
+
+
+
+</script>
+</body>
+</html>
