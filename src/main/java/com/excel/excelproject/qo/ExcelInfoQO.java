@@ -1,10 +1,12 @@
 package com.excel.excelproject.qo;
 
+import cn.hutool.db.Page;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.Data;
 
 @Data
-public class ExcelInfoQO {
+public class ExcelInfoQO extends Page {
 
     private String id;
 
@@ -16,8 +18,5 @@ public class ExcelInfoQO {
 
     private String str;
 
-    private String insertTimeStart;
-
-    private String insertTimeEnd;
-
+    private String insertTime;
 }

@@ -14,7 +14,7 @@ import javax.sql.DataSource;
  * @Description: 自定义初始化数据源
  * @date 2020/4/11
  */
-@Configuration
+// @Configuration
 public class CustomizeDataSourceInitializer {
 
 

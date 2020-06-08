@@ -9,130 +9,197 @@
             display: flex;
         }
     </style>
-
+    <link rel="stylesheet" href="css/layui.css"  media="all">
+    <script src="layui.js" charset="utf-8"></script>
 </head>
-<body>
+<body style="padding: 30px">
 <form id="searchForm" action="/download" method="POST" enctype="application/x-www-form-urlencoded">
     <div class="flex-warp">
-        <div>
-            <label>
-                主键ID
-                <input id="idKey" type="text" name="idKey" />
-            </label>
+        <div class="layui-form-item">
+            <label class="layui-form-label">主键</label>
+            <div class="layui-input-block">
+                <input type="text" name="idKey" id="idKey" lay-verify="title" autocomplete="off" placeholder="请输入主键" class="layui-input">
+            </div>
         </div>
 
-        <div>
-            <label>URL</label>
-            <input id="url" type="text" name="url" />
+        <div class="layui-form-item">
+            <label class="layui-form-label">url</label>
+            <div class="layui-input-block">
+                <input type="text" name="url" id="url" lay-verify="title" autocomplete="off" placeholder="请输入URL" class="layui-input">
+            </div>
         </div>
 
-        <div>
-            <label>备注</label>
-            <input id="remark" type="text" name="remark" />
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <input type="text" name="remark" id="remark" lay-verify="title" autocomplete="off" placeholder="请输入备注" class="layui-input">
+            </div>
         </div>
 
-        <div>
-            <label>字符串</label>
-            <input id="str" type="text" name="str" />
+        <div class="layui-form-item">
+            <label class="layui-form-label">字符串</label>
+            <div class="layui-input-block">
+                <input type="text" name="str" id="str" lay-verify="title" autocomplete="off" placeholder="请输入字符串" class="layui-input">
+            </div>
         </div>
 
-        <div>
-            <label>时间</label>
-            <input type="datetime-local" step="01" id="insertTimeStart" name="insertTimeStart">
-            ~
-            <input type="datetime-local" step="01" id="insertTimeEnd" name="insertTimeEnd">
+        <div class="layui-form">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">日期时间范围</label>
+                    <div class="layui-input-inline">
+                        <input style="width: 300px" class="layui-input" id="insertTime" type="text" placeholder=" - ">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <input type="submit" value="下载"></input>
+    <input type="hidden" name="pageSize" id="pageSize"  />
+    <input type="hidden" name="pageNumber" id="pageNumber" />
+    <button type="button" onclick="formSubmit()" class="layui-btn layui-btn-primary">下载</button>
+    <button type="button" onclick="getPage()" class="layui-btn">查询</button>
 </form>
 
 <div>
-    <button onclick="search()">查询</button>
 
 
-</div>
+    <div class="layui-form" id="table">
+        <table class="layui-table" id="result">
+            <colgroup>
+                <col width="150">
+                <col width="150">
+                <col width="200">
+                <col>
+            </colgroup>
+            <thead>
+            <tr>
+                <th>主键ID</th>
+                <th>URL</th>
+                <th>备注</th>
+                <th>字符串</th>
+                <th>时间</th>
+            </tr>
+            </thead>
+        </table>
+        <div id="demo7"></div>
+        <input type="hidden" id="total"  />
+        <input type="hidden" id="cache"  />
+    </div>
 
-
-<div>
-
-
-    <table id="table" border="1"cellspacing="0" style="display: none" th:cellpadding="0px">
-        <tr>
-            <th>主键ID</th>
-            <th>URL</th>
-            <th>备注</th>
-            <th>字符串</th>
-            <th>时间</th>
-        </tr>
-    </table>
 </div>
 
 <script src="jquery-1.11.0.min.js"></script>
 <script type="text/javascript">
-    function download() {
-        var param = {}
-        param.idKey = $("#idKey").val();
-        param.url = $("#url").val();
-        param.remark = $("#remark").val();
-        param.str = $("#str").val();
-        param.insertTimeStart = $("#insertTimeStart").val();
-        param.insertTimeEnd = $("#insertTimeEnd").val();
 
-        $.ajax({
-            type: "POST",
-            contentType: "application/json",
-            url: "/download",
-            data:  JSON.stringify(param),
-            beforeSend: function (request) {
-                request.setRequestHeader("Content-type", "application/json");
-            }, success: function (data) {
-                var blob = data;
-                var reader = new FileReader();
-                reader.readAsDataURL(blob);  // 转换为base64，可以直接放入a表情href
-                reader.onload = function (e) {
-                    // 转换完成，创建一个a标签用于下载
-                    var a = document.createElement('a');
-                    a.download = 'data.xlsx';
-                    a.href = e.target.result;
-                    $("body").append(a);  // 修复firefox中无法触发click
-                    a.click();
-                    $(a).remove();
-                }
-            }
+    $(function () {
+        getPage();
+    });
+
+
+
+    layui.use('laydate', function(){
+        var laydate = layui.laydate;
+        //日期时间范围
+        laydate.render({
+            elem: '#insertTime'
+            ,type: 'datetime'
+            ,range: true
         });
-    }
+    });
 
     function search() {
-
         var param = {}
         param.idKey = $("#idKey").val();
         param.url = $("#url").val();
         param.remark = $("#remark").val();
         param.str = $("#str").val();
-        param.insertTimeStart = $("#insertTimeStart").val();
-        param.insertTimeEnd = $("#insertTimeEnd").val();
-
+        param.insertTime = $("#insertTime").val();
+        param.pageNumber = $("#pageNumber").val();
+        param.pageSize = $("#pageSize").val();
+        var req = JSON.stringify(param);
         $.ajax({
             type: "POST",
             contentType: "application/json",
             url: "/search",
-            data:  JSON.stringify(param),
+            data:  req,
             beforeSend: function (request) {
                 request.setRequestHeader("Content-type", "application/json");
             }, success: function (result) {
-                var elStr = '';
+                if (result.result != '0000') {
+                    alert(result.msg);
+                    return;
+                }
+                $("#total").val(result.obj.total)
+                var elStr = '<tbody>';
                 $(".result").remove();
-                $.each(result, function (index, value) {
+                $.each(result.obj.records, function (index, value) {
                     elStr += '<tr class="result"><td>' + value.idKey + '</td>';
                     elStr += '<td>' + value.url + '</td>';
                     elStr += '<td>' + value.remark + '</td>';
                     elStr += '<td>' + value.str + '</td>';
                     elStr += '<td>' + value.insertTime + '</td></tr>';
                 })
-                $("#table").append($(elStr)).show();
+                elStr += '</tbody>';
+                $("#result").append($(elStr));
+                $("#table").show();
             }
         });
 
+    }
+
+
+    function getPage() {
+        var param = {}
+        param.idKey = $("#idKey").val();
+        param.url = $("#url").val();
+        param.remark = $("#remark").val();
+        param.str = $("#str").val();
+        param.insertTime = $("#insertTime").val();
+        var req = JSON.stringify(param);
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            url: "/search",
+            data:  req,
+            beforeSend: function (request) {
+                request.setRequestHeader("Content-type", "application/json");
+            }, success: function (result) {
+                if (result.result != '0000') {
+                    alert(result.msg);
+                    return;
+                }
+                $("#total").val(result.obj.total)
+                layui.use(['laypage', 'layer'], function() {
+                    var laypage = layui.laypage
+                        ,layer = layui.layer;
+                    //完整功能
+                    laypage.render({
+                        elem: 'demo7'
+                        , count: result.obj.total
+                        , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                        , limits: [100, 200, 300,400,500]
+                        , limit: 100
+                        , jump: function (obj) {
+                            var cur = $("#pageNumber")
+                            var lim = $("#pageSize")
+                            if (cur.val() == obj.curr && lim.val() == obj.limit && $("#req").val() == req) {
+                                return
+                            }
+                            lim.val(obj.limit);
+                            cur.val(obj.curr);
+                            $("#req").val(req);
+                            search()
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+
+
+    function formSubmit() {
+        $("#searchForm").submit();
     }
 
 

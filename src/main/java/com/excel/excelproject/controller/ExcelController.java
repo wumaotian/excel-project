@@ -2,6 +2,7 @@ package com.excel.excelproject.controller;
 
 import com.excel.excelproject.dto.TExcelInfo;
 import com.excel.excelproject.qo.ExcelInfoQO;
+import com.excel.excelproject.res.WsResult;
 import com.excel.excelproject.service.ExcelService;
 import com.excel.excelproject.util.ExcelUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +36,15 @@ public class ExcelController {
 
 
     @PostMapping(value = "/upload")
-    public void upload(MultipartFile file) throws Exception {
-        excelService.insert(file);
+    @ResponseBody
+    public WsResult upload(MultipartFile file) throws Exception {
+        try {
+            excelService.insert(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new WsResult(WsResult.FAILD, e.getMessage(), null);
+        }
+        return new WsResult(WsResult.SUCCESS, "上传成功", null);
     }
 
 
@@ -47,8 +55,8 @@ public class ExcelController {
 
     @PostMapping(value = "/search")
     @ResponseBody
-    public List<TExcelInfo> search(@RequestBody ExcelInfoQO qo) throws Exception {
-        return excelService.select(qo);
+    public WsResult search(@RequestBody ExcelInfoQO qo) throws Exception {
+        return new WsResult(WsResult.SUCCESS, excelService.select(qo));
     }
 
     @RequestMapping(value = "/download")
@@ -56,14 +64,18 @@ public class ExcelController {
         ExcelInfoQO qo = new ExcelInfoQO();
         Class<? extends ExcelInfoQO> aClass = qo.getClass();
         String[] colums = {"idKey","url","remark","str","insertTime"};
-        String[] params = {"idKey","url","remark","str","insertTimeStart","insertTimeEnd"};
-        for (String colum : params) {
+        for (String colum : colums) {
             Field declaredField = aClass.getDeclaredField(colum);
             declaredField.setAccessible(true);
             declaredField.set(qo, request.getParameter(colum));
         }
-        List<TExcelInfo> select = excelService.select(qo);
-        ExcelUtils.export(response, "导出文件", select, colums, colums);
+
+        final String pageNumber = request.getParameter("pageNumber");
+        final String pageSize = request.getParameter("pageSize");
+        qo.setPageNumber(Integer.parseInt(pageNumber));
+        qo.setPageSize(Integer.parseInt(pageSize));
+        final List<TExcelInfo> records = excelService.select(qo).getRecords();
+        ExcelUtils.export(response, "导出文件", records, colums, colums);
     }
 
 }

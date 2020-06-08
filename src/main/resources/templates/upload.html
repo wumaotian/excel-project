@@ -1,13 +1,87 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>文件上传页面</title>
+    <meta charset="utf-8">
+    <title>Layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="css/layui.css"  media="all">
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
 </head>
-<body>
-<form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" ><br>
-    <input type="submit" value="上传">
-</form>
+<body style="padding: 30px">
+
+<!--<div class="layui-upload">
+    <button type="button" class="layui-btn layui-btn-normal" id="test8">选择文件</button>
+    <button type="button" class="layui-btn" id="test9">开始上传</button>
+</div>-->
+<div class="layui-upload">
+    <button type="button" class="layui-btn layui-btn-normal" id="test8">选择文件</button>
+    <button type="button" class="layui-btn" id="test9">开始上传</button>
+</div>
+
+<!--
+<div class="layui-upload-drag" id="test10">
+    <i class="layui-icon"></i>
+    <p>点击上传，或将文件拖拽到此处</p>
+    <div class="layui-hide" id="uploadDemoView">
+        <hr>
+        <img src="" alt="上传成功后渲染" style="max-width: 196px">
+    </div>
+</div>
+-->
+
+
+
+<!--<input type="file" name="file" id="test20">-->
+
+
+<script src="layui.js" charset="utf-8"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+    layui.use(['upload','layer'], function(){
+        var $ = layui.jquery
+            ,upload = layui.upload
+            ,layer = layui.layer;
+        //拖拽上传
+        upload.render({
+            elem: '#test10'
+            ,url: '/upload', //改成您自己的上传接口
+                accept: 'file', //普通文件
+                field : 'file',
+                acceptMime: 'application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',   // 规定打开文件选择框时，筛选出的文件类型，值为用逗号隔开的 MIME 类型列表。
+                exts: 'xls|xlsx'
+            ,done: function(res){
+                console.log(res);
+                layer.msg('上传成功');
+            }
+        });
+
+
+        //选完文件后不自动上传
+        upload.render({
+            elem: '#test8'
+            ,url: '/upload' //改成您自己的上传接口
+            ,auto: false,
+            accept: 'file', //普通文件
+            field : 'file',
+            before: function(obj){ //obj参数包含的信息，跟 choose回调完全一致，可参见上文。
+            layer.load(); //上传loading
+            },
+            acceptMime: 'application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'   // 规定打开文件选择框时，筛选出的文件类型，值为用逗号隔开的 MIME 类型列表。
+            //,multiple: true
+            ,bindAction: '#test9'
+            ,done: function(res){
+                layer.closeAll('loading'); //关闭loading
+                layer.alert(res.msg);
+            }
+        });
+
+    });
+
+
+
+</script>
+
 </body>
 </html>

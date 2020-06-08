@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.excel.excelproject.dao.TExcelInfoDao">
+
+    <insert id="insertList" parameterType="list">
+        insert into t_excel_info (ID_KEY, URL, REMARK, STR)
+        values
+        <foreach collection="list"  separator="," item="item">
+            (#{item.idKey},#{item.url},#{item.remark},#{item.str})
+        </foreach>
+
+    </insert>
+
+</mapper>
